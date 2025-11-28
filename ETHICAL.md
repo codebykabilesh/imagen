@@ -11,7 +11,6 @@ To ensure responsible and ethical AI usage, the following guidelines must be fol
 ---
 
 
-
 \## 1. Prohibited Content
 
 
@@ -89,7 +88,7 @@ Users must review outputs carefully and avoid presenting AI-generated images as 
 
 By using this project, the user agrees to:
 
-- Follow ethical guidelines  
+- Follow ethical guideline
 - Not use the system for harmful purposes  
 - Clearly disclose AI-generated content when published online  
 
