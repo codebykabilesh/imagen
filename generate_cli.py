@@ -61,6 +61,6 @@ def main():
     }
     with open(os.path.join(OUT_DIR, "metadata.json"), "a", encoding="utf-8") as f:
         f.write(json.dumps(meta) + "\n")
-
+#main
 if __name__ == "__main__":
     main()
