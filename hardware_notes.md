@@ -1,203 +1,188 @@
-
 # Hardware Notes — CPU & GPU Installation Guide
 
 This project supports both **CPU-only** systems and **GPU-accelerated** setups.  
-Stable Diffusion can run on almost any machine, but performance varies greatly.
+Stable Diffusion runs on many hardware configurations, but performance depends on CPU, GPU, RAM, and VRAM.
 
-Below are clear setup instructions and performance recommendations for each environment.
+Below are the complete setup instructions.
 
 ---
 
 # 1. CPU Installation (Recommended for Testing)
 
-Most users without a GPU can run Stable Diffusion using CPU mode.  
-This is slower but supports a wide range of hardware.
+Most users without a GPU can run Stable Diffusion on CPU.  
+It is slower, but highly compatible.
 
 ### Install CPU PyTorch
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-Install Remaining Dependencies
-bash
-Copy code
+```
+
+### Install Remaining Dependencies
+```bash
 pip install diffusers transformers accelerate safetensors streamlit pillow tqdm numpy
-CPU Performance Tips
-Expect 20–90 seconds per image depending on resolution.
+```
 
-Use optimized parameters:
+### CPU Performance Tips
+Expect **20–90 seconds** per image depending on resolution.
 
-Width/Height: 256–384px
+Recommended settings:
 
-Steps: 10–25
+- **Width/Height:** 256–384 px  
+- **Steps:** 10–25  
+- **Guidance scale:** 6–9  
 
-Guidance scale: 6–9
+Avoid:
 
-Do NOT use 512×512 or >30 steps on weak CPUs.
+- 512×512 resolution  
+- 30+ steps on weak CPUs  
 
-The model uses low_cpu_mem_usage=True internally for stability.
+The application already uses `low_cpu_mem_usage=True` for stability.
 
-2. GPU Installation (NVIDIA CUDA Preferred)
-If you have an NVIDIA GPU, you will get 10x–20x faster inference.
+---
 
-Step 1 — Install CUDA-Compatible PyTorch
-Example (CUDA 11.8):
+# 2. GPU Installation (NVIDIA CUDA Preferred)
 
-bash
-Copy code
+If you have an NVIDIA GPU, generation speed improves by **10x–30x**.
+
+### Step 1 — Install CUDA-Compatible PyTorch
+Example for CUDA 11.8:
+
+```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-For other CUDA versions, check:
+```
+
+Find other versions here:  
 https://pytorch.org/get-started/locally/
 
-Step 2 — Install Diffusers + Extras
-bash
-Copy code
-pip install diffusers[torch] transformers accelerate safetensors streamlit pillow tqdm
-Step 3 — Enable GPU Mode in Code
-Inside load_pipeline() in streamlit_app.py:
+### Step 2 — Install Remaining Dependencies
+```bash
+pip install diffusers[torch] transformers accelerate safetensors streamlit pillow tqdm numpy
+```
+
+### Step 3 — Enable GPU Mode in Code
+
+In `streamlit_app.py`, inside `load_pipeline()`:
 
 Replace:
-
-python
-Copy code
+```python
 pipe = pipe.to("cpu")
+```
+
 With:
-
-python
-Copy code
+```python
 pipe = pipe.to("cuda")
-Optional (Recommended)
-Enable half-precision for faster performance:
+```
 
-python
-Copy code
+### Optional — Enable FP16 for Faster Generation
+Use FP16 if GPU VRAM ≥ 6GB:
+```python
 pipe = StableDiffusionPipeline.from_pretrained(
-    MODEL_ID, 
+    MODEL_ID,
     torch_dtype=torch.float16,
     use_safetensors=True
 )
 pipe = pipe.to("cuda")
-3. Low-VRAM GPU (2GB–4GB) Tips
-If your GPU is weak (e.g., GTX 1650, MX series, older cards):
+```
 
-Reduce image size → 256 or 384
+---
 
-Reduce steps → 10–20
+# 3. Low-VRAM GPUs (2GB–4GB) — Optimization Tips
 
-Use:
+If your GPU is older or small (GTX 1650, MX series):
 
-python
-Copy code
-low_cpu_mem_usage=True
-Avoid high guidance > 10
+- Use **256–384 px** resolution  
+- Steps: **10–20**  
+- Guidance: **6–8**  
+- Enable `low_cpu_mem_usage=True`  
+- Use `torch.float16` when possible  
+- Close Chrome, games, and other GPU apps  
 
-Use FP16 (torch.float16) when possible
+---
 
-Close other GPU apps (Chrome, games, IDE tools)
+# 4. Windows Virtual Memory (Pagefile) — IMPORTANT
 
-4. Windows Pagefile / Virtual Memory
-Stable Diffusion sometimes needs more RAM and virtual memory.
+If you see errors like:
 
-If you see:
-
-vbnet
-Copy code
+```
 OSError: The paging file is too small
 MemoryError
+```
+
+Fix it:
+
+1. Open  
+   **Control Panel → System → Advanced system settings → Performance → Settings**
+2. Go to **Virtual Memory**
+3. Set:
+   - Initial size: **16000 MB**
+   - Maximum size: **32000 MB**
+4. Restart your computer.
+
+---
+
+# 5. Common Errors & Solutions
+
+### ❌ CUDA out of memory
 Fix:
+- Reduce resolution  
+- Reduce steps  
+- Lower guidance scale  
+- Use FP16  
+- Close GPU-heavy apps  
 
-Open:
-Control Panel → System → Advanced → Performance → Settings
-
-Go to Virtual Memory
-
-Set:
-
-Initial size: 16000 MB
-
-Maximum size: 32000 MB
-
-Click OK and restart.
-
-5. Common Issues & Fixes
-Issue: “CUDA out of memory”
+### ❌ Model too large / MemoryError
 Fix:
+- Increase pagefile (Windows)  
+- Use 256/384 px  
+- Use SD 1.5 instead of SDXL  
 
-Reduce resolution
-
-Reduce steps
-
-Reduce guidance
-
-Enable FP16
-
-Restart programs using GPU
-
-Issue: “Model too large to load”
+### ❌ Slow generation
 Fix:
+- Keep resolution low  
+- Steps ≤ 20  
+- Close unnecessary programs  
 
-Increase pagefile (Windows)
+---
 
-Close other memory-heavy applications
+# 6. Recommended Hardware
 
-Use smaller checkpoints (SD 1.5 instead of SDXL)
+### Minimum (works on CPU)
+- Intel i5 / Ryzen 5  
+- 8GB RAM  
+- No GPU needed  
 
-Issue: Slow generation (CPU)
-Fix:
+### Good Setup
+- Intel i7 / Ryzen 7  
+- 16GB–32GB RAM  
+- NVIDIA RTX 2060 / 3060  
+- 6GB–12GB VRAM  
 
-Set width/height to ~256–384
+### Best Setup
+- RTX 3080 / 4080 / 4090  
+- 16GB VRAM+  
+- Very fast encoding
 
-Steps 10–20
+---
 
-Use shared compiler optimizations in PyTorch
+# 7. Cloud GPU Options (Optional)
 
-Increase thread count if your CPU supports it
+If you want faster generation:
 
-6. Recommended Hardware
-Minimum:
-CPU: Intel i5 / Ryzen 5
+- Google Colab (Free GPU)  
+- Kaggle Notebooks  
+- RunPod  
+- Vast.ai  
+- Paperspace  
 
-RAM: 8GB
+You can upload your repo and run the Streamlit app remotely.
 
-No GPU required
+---
 
-Optimal:
-CPU: Intel i7 / Ryzen 7
+# 8. Summary
 
-RAM: 16GB–32GB
+- CPU mode works everywhere but is slower.  
+- GPU mode is optional but gives massive speed improvements.  
+- This project includes both CPU and GPU instructions to meet the internship requirement.  
+- Make sure to adjust pagefile / VRAM settings to prevent errors.  
 
-GPU: NVIDIA RTX 3060 / 4060 or better
-
-VRAM: 6GB+
-
-High-end:
-RTX 3080 / 4080 / 4090
-
-Fastest inference, supports larger models (SDXL)
-
-7. Cloud GPU Options (Optional)
-If you want faster/cheaper GPU compute:
-
-Google Colab (Free + Pro)
-
-Kaggle Notebooks (free GPU quota)
-
-RunPod.io
-
-Vast.ai
-
-Paperspace
-
-You can upload your repository and run the Streamlit app remotely with streamer tunnels.
-
-8. Summary
-CPU mode works everywhere but is slow → suitable for Talrn task.
-
-GPU mode is optional and provides huge speedups.
-
-This project includes both CPU and GPU instructions to meet the internship requirement.
-
-Pagefile adjustments may be required on Windows.
-
-Recommended to keep image size small when using CPU.
-
-
-
+---
