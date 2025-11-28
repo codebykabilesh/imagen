@@ -1,0 +1,26 @@
+# Ignore virtual environment
+.venv/
+venv/
+env/
+
+# Ignore python cache
+__pycache__/
+*.pyc
+
+# Ignore outputs (but allow sample outputs)
+outputs/*
+!outputs/sample_outputs/
+
+# Ignore model checkpoints
+*.ckpt
+*.safetensors
+models/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore Streamlit internal files
+.streamlit/
+.idea/
+
