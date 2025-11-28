@@ -22,5 +22,6 @@ Thumbs.db
 
 # Ignore Streamlit internal files
 .streamlit/
+# pycharm idea files to be removed
 .idea/
 
